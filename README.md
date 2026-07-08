@@ -62,3 +62,19 @@ terraform state list
 
 # Destroy
 terraform destroy -auto-approve 
+
+## 🚀 Phase 4: Ansible Configuration Management
+
+- ✅ Ansible playbooks created
+- ✅ Cluster setup automation
+- ✅ Application deployment automation
+- ✅ Infrastructure configuration as code
+
+### Ansible Commands Used:
+```bash
+# Setup cluster
+ansible-playbook ansible/playbooks/setup-cluster.yml
+
+# Deploy application
+ansible-playbook ansible/playbooks/deploy-app.yml 
+
