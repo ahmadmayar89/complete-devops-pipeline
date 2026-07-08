@@ -1,0 +1,38 @@
+---
+- name: Deploy Application
+  hosts: localhost
+  connection: local
+  
+  tasks:
+    - name: Ensure devops-app namespace exists
+      shell: kubectl create namespace devops-app --dry-run=client -o yaml | kubectl apply -f -
+      changed_when: true
+    
+    - name: Deploy Helm chart
+      shell: helm upgrade --install myapp {{ playbook_dir }}/../../kubernetes/helm/myapp -n devops-app
+      register: helm_deploy
+      changed_when: "'UPGRADE SUCCESSFUL' in helm_deploy.stdout or 'INSTALL SUCCESSFUL' in helm_deploy.stdout"
+    
+    - name: Display deployment status
+      debug:
+        msg: "Helm deployment status: {{ helm_deploy.stdout }}"
+    
+    - name: Wait for pods to be ready
+      shell: kubectl wait --for=condition=ready pod -l app=myapp -n devops-app --timeout=120s
+      register: wait_pods
+      changed_when: false
+      ignore_errors: yes
+    
+    - name: Display pod status
+      debug:
+        msg: "All pods are ready in devops-app namespace"
+    
+    - name: Get service URL
+      shell: minikube service myapp -n devops-app --url
+      register: service_url
+      changed_when: false
+      ignore_errors: yes
+    
+    - name: Display service URL
+      debug:
+        msg: "Application URL: {{ service_url.stdout }}"

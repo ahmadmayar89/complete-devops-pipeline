@@ -1,0 +1,54 @@
+---
+- name: Setup Kubernetes Cluster
+  hosts: localhost
+  connection: local
+  gather_facts: yes
+  
+  tasks:
+    - name: Display cluster info
+      debug:
+        msg: "Setting up Kubernetes cluster..."
+    
+    - name: Check kubectl is installed
+      command: kubectl version --client
+      register: kubectl_version
+      failed_when: kubectl_version.rc != 0
+      changed_when: false
+    
+    - name: Display kubectl version
+      debug:
+        msg: "kubectl version: {{ kubectl_version.stdout }}"
+    
+    - name: Check Minikube status
+      command: minikube status
+      register: minikube_status
+      failed_when: minikube_status.rc != 0
+      changed_when: false
+    
+    - name: Display Minikube status
+      debug:
+        msg: "Minikube status: {{ minikube_status.stdout_lines }}"
+    
+    - name: Create namespace using kubectl (dry-run)
+      shell: kubectl create namespace devops-app --dry-run=client -o yaml | kubectl apply -f -
+      register: namespace_result
+      changed_when: "'created' in namespace_result.stdout or 'configured' in namespace_result.stdout"
+    
+    - name: Verify namespace created
+      shell: kubectl get namespace devops-app -o jsonpath='{.metadata.name}'
+      register: namespace_check
+      changed_when: false
+    
+    - name: Display namespace status
+      debug:
+        msg: "Namespace devops-app: {{ namespace_check.stdout }}"
+    
+    - name: Check Helm releases
+      shell: helm list -n devops-app
+      register: helm_list
+      changed_when: false
+      ignore_errors: yes
+    
+    - name: Display Helm releases
+      debug:
+        msg: "Helm releases in devops-app: {{ helm_list.stdout_lines }}"
