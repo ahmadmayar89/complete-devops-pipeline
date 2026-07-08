@@ -1,0 +1,68 @@
+pipeline {
+    agent any
+    
+    environment {
+        DOCKER_REGISTRY = 'myapp'
+        IMAGE_TAG = "${env.BUILD_ID}"
+        NAMESPACE = 'devops-app'
+    }
+    
+    stages {
+        stage('Checkout') {
+            steps {
+                echo 'Checking out code from GitHub...'
+                git branch: 'main', url: 'https://github.com/ahmadmayar89/complete-devops-pipeline.git'
+            }
+        }
+        
+        stage('Build Docker Image') {
+            steps {
+                echo 'Building Docker image...'
+                sh '''
+                    cd app
+                    docker build -t myapp:${BUILD_ID} .
+                '''
+            }
+        }
+        
+        stage('Deploy with Helm') {
+            steps {
+                echo 'Deploying with Helm...'
+                sh '''
+                    helm upgrade --install myapp ./kubernetes/helm/myapp -n ${NAMESPACE} \
+                        --set image.tag=${BUILD_ID}
+                '''
+            }
+        }
+        
+        stage('Health Check') {
+            steps {
+                echo 'Checking application health...'
+                sh '''
+                    kubectl wait --for=condition=ready pod -l app=myapp -n ${NAMESPACE} --timeout=60s
+                '''
+            }
+        }
+        
+        stage('Get Service URL') {
+            steps {
+                echo 'Getting service URL...'
+                sh '''
+                    minikube service myapp -n ${NAMESPACE} --url || echo "Service URL: localhost"
+                '''
+            }
+        }
+    }
+    
+    post {
+        always {
+            echo 'Pipeline completed!'
+        }
+        failure {
+            echo 'Pipeline failed! Check the logs above.'
+        }
+        success {
+            echo 'Pipeline succeeded! Application deployed successfully.'
+        }
+    }
+}
