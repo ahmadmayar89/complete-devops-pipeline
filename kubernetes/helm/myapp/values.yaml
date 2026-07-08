@@ -1,0 +1,13 @@
+# Number of replicas
+replicaCount: 3
+
+# Image configuration
+image:
+  repository: myapp
+  tag: latest
+  pullPolicy: IfNotPresent
+
+# Service configuration
+service:
+  type: NodePort
+  port: 80
