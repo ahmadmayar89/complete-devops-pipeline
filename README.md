@@ -34,7 +34,7 @@ Git Push -> Jenkins -> Terraform -> Ansible -> Docker -> Helm -> Tests -> Auto-D
 
 ## Author
 
-Ahmad Mayar
+Ahmad Rashid
 - GitHub: https://github.com/ahmadmayar89
 
 ## 🚀 Phase 3: Terraform Infrastructure
